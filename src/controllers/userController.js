@@ -1,23 +1,48 @@
-const users = require("../data/users");
+// const users = require("../data/users");
+
+const pool = require("../config/db");
 
 //GET all users
-const getAllUsers = (req, res) => {
-    res.json(users);
-}
+const getAllUsers = async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM users ORDER BY id ASC"
+        );
+
+        return res.status(200).json(result.rows);
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+};
 
 //GET single user by ID
-const getUserById = (req, res) => {
-    const id = Number(req.params.id);
+const getUserById = async (req, res) => {
 
-    const user = users.find((user) => user.id === id);
+    try {
+        const id = Number(req.params.id);
 
-    if (!user) {
-        return res.status(404).json({
-            message: "User not found"
+        const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json(result.rows);
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error",
         });
     }
 
-    res.json(user);
 }
 
 //CREATE user
