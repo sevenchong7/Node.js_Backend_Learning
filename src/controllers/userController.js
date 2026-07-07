@@ -26,6 +26,12 @@ const getUserById = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "Invalid user ID"
+            });
+        }
+
         const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
 
         if (result.rows.length === 0) {
@@ -34,7 +40,7 @@ const getUserById = async (req, res) => {
             });
         }
 
-        return res.status(200).json(result.rows);
+        return res.status(200).json(result.rows[0]);
     } catch (error) {
         console.error(error);
 
@@ -46,57 +52,128 @@ const getUserById = async (req, res) => {
 }
 
 //CREATE user
-const createUser = (req, res) => {
-    const newUser = {
-        id: users.length + 1,
-        name: req.body.name
-    };
+const createUser = async (req, res) => {
 
-    users.push(newUser);
+    try {
+        const {
+            name,
+            email
+        } = req.body;
 
-    res.status(201).json({
-        message: "User created",
-        user: newUser
-    });
+        if (!name || !email) {
+            return res.status(400).json({
+                message: "Name and email are required"
+            });
+        }
+
+        const user = await pool.query("INSERT INTO users (name, email) VALUES($1, $2) RETURNING * ;", [name, email]);
+
+        return res.status(200).json({
+            message: "User created",
+            user: user.rows[0]
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error",
+        });
+    }
 }
 
 //UPDATE user
-const updateUser = (req, res) => {
-    const id = Number(req.params.id);
+const updateUser = async (req, res) => {
 
-    const user = users.find((user) => user.id === id);
+    try {
+        const id = Number(req.params.id);
 
-    if (!user) {
-        return res.status(404).json({
-            message: "User not found"
+        const {
+            name,
+            email
+        } = req.body;
+
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "Invalid user ID"
+            });
+        }
+
+        if (!name || !email) {
+            return res.status(400).json({
+                message: "Name and email are required"
+            });
+        }
+
+
+        const result = await pool.query(
+            `
+            UPDATE users
+            SET name = $1,
+            email = $2
+            WHERE id = $3
+            RETURNING *;
+            `,
+            [name, email, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        const updatedUser = result.rows[0];
+
+        return res.status(200).json({
+            message: "User updated",
+            user: updatedUser
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error",
         });
     }
 
-    user.name = req.body.name;
-
-    res.json({
-        message: "User updated",
-        user: user
-    });
 }
 
 //DELETE user
-const deleteUser = (req, res) => {
-    const id = Number(req.params.id);
+const deleteUser = async (req, res) => {
+    try {
 
-    const userIndex = users.findIndex((user) => user.id === id);
+        const id = Number(req.params.id);
 
-    if (userIndex === -1) {
-        return res.status(404).json({
-            message: "User not found"
+        if (isNaN(id)) {
+            return res.status(400).json({
+                message: "Invalid user ID"
+            });
+        }
+
+        const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING *;", [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const deletedUser = result.rows[0];
+
+        return res.status(200).json({
+            message: "User deleted",
+            user: deletedUser
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            message: "Internal server error",
         });
     }
-
-    users.splice(userIndex, 1);
-
-    res.json({
-        message: "User deleted"
-    });
 }
 
 module.exports = {
