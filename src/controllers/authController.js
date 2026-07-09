@@ -1,18 +1,16 @@
 const userRepositories = require("../repositories/userRepositories");
 const authService = require("../services/authService");
 const asyncHandler = require("../utils/asyncHandler");
+const loginSchema = require("../validations/loginValidation");
 
 const loginUser = asyncHandler(async (req, res) => {
+
+    loginSchema.parse(req.body);
+
     const {
         email,
         password
     } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({
-            message: "Email and password are required"
-        });
-    }
 
     const result = await authService.login(email, password);
 

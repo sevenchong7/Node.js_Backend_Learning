@@ -1,4 +1,18 @@
+const {
+    ZodError
+} = require("zod");
+
 const errorMiddleware = (err, req, res, next) => {
+
+    if (err instanceof ZodError) {
+        return res.status(400).json({
+            errors: err.issues.map(issue => ({
+                field: issue.path.join("."),
+                message: issue.message
+            }))
+        });
+    }
+
 
     const statusCode = err.statusCode || 500;
 
