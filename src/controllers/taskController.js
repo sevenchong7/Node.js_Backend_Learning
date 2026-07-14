@@ -3,6 +3,7 @@ const taskService = require("../services/taskService");
 const {
     taskSchema,
     getTaskByIdSchema,
+    taskPaginationSchema
 } = require("../validations/taskValidation");
 
 const createTask = asyncHandler(async (req, res) => {
@@ -27,9 +28,18 @@ const createTask = asyncHandler(async (req, res) => {
 });
 
 const getTasksByUserId = asyncHandler(async (req, res) => {
+
+    taskPaginationSchema.parse(req.query);
+
+    const {
+        page,
+        limit,
+        search
+    } = req.query
+
     const userId = req.user.userId;
 
-    const result = await taskService.getTasksByUserId(userId);
+    const result = await taskService.getTasksByUserId(userId, page, limit, search);
 
     return res.status(200).json(result);
 })

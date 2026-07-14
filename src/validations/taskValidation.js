@@ -33,7 +33,27 @@ const updateTaskSchema = z.object({
         .optional()
 })
 
+const taskPaginationSchema = z.object({
+    page: z.coerce
+        .number()
+        .int()
+        .positive()
+        .default(1),
+    limit: z.coerce
+        .number()
+        .int()
+        .positive()
+        .max(100)
+        .default(10),
+    title: z
+        .string()
+        .trim()
+        .max(255, "Description cannot exceed 255 characters")
+        .optional()
+})
+
 module.exports = {
     taskSchema,
-    updateTaskSchema
+    updateTaskSchema,
+    taskPaginationSchema
 };

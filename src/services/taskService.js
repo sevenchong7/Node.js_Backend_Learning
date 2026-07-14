@@ -24,8 +24,13 @@ const createTask = async ({
 };
 
 
-const getTasksByUserId = async (userId) => {
-    const result = await taskRepositories.getTasksByUserId(userId);
+const getTasksByUserId = async ({
+    userId,
+    page,
+    limit,
+    search
+}) => {
+    const result = await taskRepositories.getTasksByUserId(userId, page, limit, search);
 
     return result;
 }
@@ -47,7 +52,7 @@ const updateTask = async ({
     description,
     userId
 }) => {
-    const result = taskRepositories.updateTask({
+    const result = await taskRepositories.updateTask({
         id,
         title,
         description,
@@ -63,7 +68,7 @@ const updateTask = async ({
 }
 
 const updateTaskStatus = async (taskId, userId) => {
-    const result = taskRepositories.updateTaskStatus(taskId, userId);
+    const result = await taskRepositories.updateTaskStatus(taskId, userId);
 
     if (!result) {
         throw new AppError("Invalid Task ID", 400)
@@ -73,7 +78,7 @@ const updateTaskStatus = async (taskId, userId) => {
 }
 
 const deleteTask = async (taskId, userId) => {
-    const result = taskRepositories.deleteTask(taskId, userId);
+    const result = await taskRepositories.deleteTask(taskId, userId);
 
     if (!result) {
         throw new AppError("Invalid Task ID", 400)

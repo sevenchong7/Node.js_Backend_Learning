@@ -10,10 +10,53 @@ const createTask = async ({
     return result.rows[0];
 };
 
-const getTasksByUserId = async (userId) => {
-    const result = await pool.query("SELECT * FROM TASKS WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
+const getTasksByUserId = async ({
+    userId,
+    page,
+    limit,
+    search
+}) => {
 
-    return result.rows;
+    const offset = (page - 1) * limit;
+
+    let query = `
+        SELECT * FROM TASKS 
+        WHERE user_id = $1 
+         `;
+
+    const value = [userId];
+
+    if (search) {
+        query += ` AND title ILIKE $2`;
+        value.push(`%${search}%`)
+    };
+
+    value.push([limit, offset]);
+
+    query += `
+        ORDER BY created_at DESC  
+        LIMIT $2 
+        OFFSET $3 
+         `;
+
+    const tasks = await pool.query(query, value);
+
+    // const tasks = await pool.query(
+    //     `
+    //     SELECT * FROM TASKS 
+    //     WHERE user_id = $1 
+    //     ORDER BY created_at DESC  
+    //     LIMIT $2 
+    //     OFFSET $3 
+    //     `,
+    //     [userId, limit, offset]);
+
+    const total = await pool.query("SELECT COUNT (*) FROM TASKS WHERE user_id = $1", [userId]);
+
+    return {
+        tasks: tasks.rows,
+        total: Number(total.rows[0].count)
+    }
 }
 
 const getTaskById = async (taskId, userId) => {
