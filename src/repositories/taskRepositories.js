@@ -14,44 +14,54 @@ const getTasksByUserId = async ({
     userId,
     page,
     limit,
-    search
+    search,
+    completed,
+    sort,
+    order
 }) => {
-
     const offset = (page - 1) * limit;
+
+    let whereClause = `WHERE user_id = $1`;
+
+    const values = [userId];
+
+    if (search) {
+        values.push(`%${search}%`)
+        whereClause += ` AND title ILIKE $${values.length}`;
+    };
+
+    if (completed !== undefined) {
+        values.push(completed);
+        whereClause += ` AND completed = $${values.length}`;
+    };
+
 
     let query = `
         SELECT * FROM TASKS 
-        WHERE user_id = $1 
+        ${whereClause}
          `;
-
-    const value = [userId];
-
-    if (search) {
-        query += ` AND title ILIKE $2`;
-        value.push(`%${search}%`)
-    };
-
-    value.push([limit, offset]);
 
     query += `
-        ORDER BY created_at DESC  
-        LIMIT $2 
-        OFFSET $3 
-         `;
+        ORDER_BY ${sort} ${order}
+        `;
 
-    const tasks = await pool.query(query, value);
+    const countValue = [...values];
 
-    // const tasks = await pool.query(
-    //     `
-    //     SELECT * FROM TASKS 
-    //     WHERE user_id = $1 
-    //     ORDER BY created_at DESC  
-    //     LIMIT $2 
-    //     OFFSET $3 
-    //     `,
-    //     [userId, limit, offset]);
+    values.push(limit);
 
-    const total = await pool.query("SELECT COUNT (*) FROM TASKS WHERE user_id = $1", [userId]);
+    query += `
+        LIMIT $${values.length}
+        `;
+
+    values.push(offset);
+
+    query += `
+        OFFSET $${values.length}
+        `;
+
+    const tasks = await pool.query(query, values);
+
+    const total = await pool.query(`SELECT COUNT (*) FROM TASKS ${whereClause}`, countValue);
 
     return {
         tasks: tasks.rows,

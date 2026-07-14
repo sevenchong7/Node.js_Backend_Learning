@@ -28,11 +28,39 @@ const getTasksByUserId = async ({
     userId,
     page,
     limit,
-    search
+    search,
+    completed,
+    sort,
+    order
 }) => {
-    const result = await taskRepositories.getTasksByUserId(userId, page, limit, search);
 
-    return result;
+    const result = await taskRepositories.getTasksByUserId({
+        userId,
+        page,
+        limit,
+        search,
+        completed,
+        sort,
+        order
+    });
+
+    const totalPages = Math.ceil(result.total / limit);
+
+    const hasNextPage = page < totalPages;
+
+    const hasPreviousPage = page > 1;
+
+    return {
+        data: result.tasks,
+        pagination: {
+            page: page,
+            limit: limit,
+            total: result.total,
+            totalPages: totalPages,
+            hasNextPage: hasNextPage,
+            hasPreviousPage: hasPreviousPage
+        }
+    };
 }
 
 const getTaskById = async (taskId, userId) => {

@@ -45,11 +45,28 @@ const taskPaginationSchema = z.object({
         .positive()
         .max(100)
         .default(10),
-    title: z
+    search: z
         .string()
         .trim()
         .max(255, "Description cannot exceed 255 characters")
-        .optional()
+        .transform(value => value || undefined)
+        .optional(),
+    completed: z
+        .enum(["true", "false"])
+        .transform(value => value === "true")
+        .optional(),
+    sort: z
+        .enum([
+            "created_at",
+            "title",
+            "completed"
+        ])
+        .default("created_at")
+        .optional(),
+    order: z
+        .enum(["asc", "desc"])
+        .default("desc")
+        .optional(),
 })
 
 module.exports = {

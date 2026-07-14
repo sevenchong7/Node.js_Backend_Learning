@@ -29,17 +29,26 @@ const createTask = asyncHandler(async (req, res) => {
 
 const getTasksByUserId = asyncHandler(async (req, res) => {
 
-    taskPaginationSchema.parse(req.query);
-
     const {
         page,
         limit,
-        search
-    } = req.query
+        search,
+        completed,
+        sort,
+        order
+    } = taskPaginationSchema.parse(req.query);
 
     const userId = req.user.userId;
 
-    const result = await taskService.getTasksByUserId(userId, page, limit, search);
+    const result = await taskService.getTasksByUserId({
+        userId,
+        page,
+        limit,
+        search,
+        completed,
+        sort,
+        order
+    });
 
     return res.status(200).json(result);
 })
