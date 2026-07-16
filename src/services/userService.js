@@ -1,7 +1,7 @@
 const userRepositories = require("../repositories/userRepositories");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const AppError = require("../utils/appError");
+const AppError = require("../utils/AppError");
 
 const saltRounds = 10;
 

@@ -1,5 +1,5 @@
 const userRepositories = require("../repositories/userRepositories");
-const AppError = require("../utils/appError");
+const AppError = require("../utils/AppError");
 
 const getProfile = async (userId) => {
 
