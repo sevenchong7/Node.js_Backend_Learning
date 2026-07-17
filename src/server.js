@@ -1,5 +1,19 @@
 const app = require("./app");
+const redisClient = require("./config/redis");
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+const startServer = async () => {
+  try {
+    await redisClient.connect();
+
+    console.log("✅ Redis Connected");
+
+    app.listen(3000, () => {
+      console.log("🚀 Server running on port 3000");
+    });
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+startServer();

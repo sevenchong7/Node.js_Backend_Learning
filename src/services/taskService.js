@@ -1,6 +1,7 @@
 const taskRepositories = require("../repositories/taskRepositories");
 const AppError = require("../utils/AppError");
-
+const redisClient = require("../config/redis");
+const invalidateTaskCache = require("../utils/redisCache");
 
 const createTask = async ({
     title,
@@ -13,6 +14,8 @@ const createTask = async ({
         description,
         userId
     });
+
+    await invalidateTaskCache(userId);
 
     if (!createdTask) {
         throw new AppError("Failed to create task", 500);
@@ -35,6 +38,27 @@ const getTasksByUserId = async ({
     order
 }) => {
 
+    const cacheKey =
+        `tasks:${userId}` +
+        `:page=${page}` +
+        `:limit=${limit}` +
+        `:search=${search ?? ""}` +
+        `:completed=${completed ?? ""}` +
+        `:sort=${sort}` +
+        `:order=${order}`;
+
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+
+        console.log("🔥 Cache HIT");
+
+        return JSON.parse(cachedData);
+
+    }
+
+    console.log("💾 Cache MISS");
+
     const result = await taskRepositories.getTasksByUserId({
         userId,
         page,
@@ -51,17 +75,26 @@ const getTasksByUserId = async ({
 
     const hasPreviousPage = page > 1;
 
-    return {
+    const response = {
         data: result.tasks,
         pagination: {
-            page: page,
-            limit: limit,
+            page,
+            limit,
             total: result.total,
-            totalPages: totalPages,
-            hasNextPage: hasNextPage,
-            hasPreviousPage: hasPreviousPage
+            totalPages,
+            hasNextPage,
+            hasPreviousPage
         }
     };
+
+    await redisClient.set(
+        cacheKey,
+        JSON.stringify(response), {
+            EX: 60
+        }
+    );
+
+    return response;
 }
 
 const getTaskById = async (taskId, userId) => {

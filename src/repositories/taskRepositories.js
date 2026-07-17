@@ -26,7 +26,7 @@ const getTasksByUserId = async ({
     const values = [userId];
 
     if (search) {
-        values.push(`%${search}%`)
+        values.push(`%${search}%`);
         whereClause += ` AND title ILIKE $${values.length}`;
     };
 
@@ -35,14 +35,13 @@ const getTasksByUserId = async ({
         whereClause += ` AND completed = $${values.length}`;
     };
 
-
     let query = `
         SELECT * FROM TASKS 
         ${whereClause}
          `;
 
     query += `
-        ORDER_BY ${sort} ${order}
+        ORDER BY ${sort} ${order}
         `;
 
     const countValue = [...values];
@@ -50,7 +49,7 @@ const getTasksByUserId = async ({
     values.push(limit);
 
     query += `
-        LIMIT $${values.length}
+        LIMIT $${values.length} 
         `;
 
     values.push(offset);
@@ -94,7 +93,6 @@ const updateTask = async ({
     );
 
     return result.rows[0];
-
 }
 
 const updateTaskStatus = async (taskId, userId) => {
