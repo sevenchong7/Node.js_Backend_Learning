@@ -19,15 +19,29 @@ const login = async (email, password) => {
         throw new AppError("Invalid email or password", 400);
     }
 
-    const token = jwt.sign({
+    const accessToken = jwt.sign({
         userId: user.id,
     }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN
     });
 
+    const refreshToken = jwt.sign({
+            userId: user.id
+        },
+        process.env.JWT_REFRESH_SECRET, {
+            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
+        }
+    );
+
+    await userRepositories.updateRefreshToken(
+        user.id,
+        refreshToken
+    );
+
     const response = {
         message: "Login successful",
-        token: token,
+        accessToken,
+        refreshToken,
         user: {
             id: user.id,
             name: user.name,

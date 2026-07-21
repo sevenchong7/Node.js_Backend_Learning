@@ -40,11 +40,23 @@ const deleteUser = async (id) => {
     return result.rows[0];
 }
 
+const updateRefreshToken = async (userId, refreshToken) => {
+    await pool.query(
+        `
+        UPDATE users
+        SET refresh_token = $1
+        WHERE id = $2
+        `,
+        [refreshToken, userId]
+    );
+};
+
 module.exports = {
     findUserByEmail,
     createUser,
     findUserById,
     getAllUsers,
     updateUser,
-    deleteUser
+    deleteUser,
+    updateRefreshToken
 };

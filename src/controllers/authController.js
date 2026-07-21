@@ -2,6 +2,7 @@ const userRepositories = require("../repositories/userRepositories");
 const authService = require("../services/authService");
 const asyncHandler = require("../utils/asyncHandler");
 const loginSchema = require("../validations/loginValidation");
+const redisClient = require("../config/redis");
 
 const loginUser = asyncHandler(async (req, res) => {
 
@@ -13,6 +14,10 @@ const loginUser = asyncHandler(async (req, res) => {
     } = req.body;
 
     const result = await authService.login(email, password);
+
+    const key = `login:${req.ip}`;
+
+    await redisClient.del(key);
 
     return res.status(200).json(result);
 });
