@@ -21,12 +21,14 @@ const login = async (email, password) => {
 
     const accessToken = jwt.sign({
         userId: user.id,
+        type: "access"
     }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN
     });
 
     const refreshToken = jwt.sign({
-            userId: user.id
+            userId: user.id,
+            type: "refresh"
         },
         process.env.JWT_REFRESH_SECRET, {
             expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
@@ -78,7 +80,69 @@ const register = async ({
     }
 }
 
+const refreshToken = async (refreshToken) => {
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    if (decoded.type !== "refresh") {
+        throw new AppError("Invalid token type", 401);
+    }
+
+    const userId = decoded.userId
+
+    const user = await userRepositories.findUserById(userId);
+
+    // const storeRefreshToken = await userRepositories.getRefreshToken(userId);
+
+    if (refreshToken !== storeRefreshToken) {
+        throw new AppError("Invalid Token", 401);
+    }
+
+    // const compareResult = await bcrypt.compare(refreshToken, storeRefreshToken);
+
+    if (!compareResult) {
+        throw new AppError("Invalid Token", 401);
+    }
+
+    const accessToken = jwt.sign({
+            userId: user.id,
+            type: 'access'
+        },
+        process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+        }
+    );
+
+    return {
+        accessToken
+    };
+}
+
+const logout = async (refreshToken) => {
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    if (decoded.type !== "refresh") {
+        throw new AppError("Invalid token type", 401);
+    }
+
+    const userId = decoded.userId
+
+    const user = await userRepositories.findUserById(userId);
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    return {
+        message: "Logout successful"
+    }
+}
+
+
 module.exports = {
     login,
-    register
+    register,
+    refreshToken,
+    logout
 };

@@ -44,7 +44,31 @@ const registerUser = asyncHandler(async (req, res) => {
     return res.status(201).json(result);
 });
 
+const refreshToken = asyncHandler(async (req, res) => {
+    const {
+        refreshToken
+    } = req.body;
+
+    const result = await authService.refresh(refreshToken);
+
+    return res.status(200).json(result);
+});
+
+const logout = asyncHandler(async (req, res) => {
+    const {
+        refreshToken
+    } = req.body;
+
+    logoutSchema.parse(req.body);
+
+    const result = await authService.logout(refreshToken);
+
+    return res.status(200).json(result);
+})
+
 module.exports = {
     loginUser,
-    registerUser
+    registerUser,
+    refreshToken,
+    logout
 };

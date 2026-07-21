@@ -45,11 +45,36 @@ const updateRefreshToken = async (userId, refreshToken) => {
         `
         UPDATE users
         SET refresh_token = $1
-        WHERE id = $2
+        WHERE id = $2;
         `,
         [refreshToken, userId]
     );
 };
+
+const getRefreshToken = async (userId) => {
+    const result = await pool.query(
+        `
+        SELECT refresh_token 
+        FROM users
+        WHERE id = $1;
+        `,
+        [userId]
+    )
+
+    return result.rows[0];
+}
+
+
+const deleteRefreshTokenByUserId = async (userId) => {
+    const result = await pool.query(
+        `
+        UPDATE users
+        SET refresh_token = NULL
+        WHERE id = $1;
+        `,
+        [userId]
+    )
+}
 
 module.exports = {
     findUserByEmail,
@@ -58,5 +83,7 @@ module.exports = {
     getAllUsers,
     updateUser,
     deleteUser,
-    updateRefreshToken
+    updateRefreshToken,
+    getRefreshToken,
+    deleteRefreshTokenByUserId
 };
