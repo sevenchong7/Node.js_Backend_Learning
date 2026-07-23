@@ -8,6 +8,11 @@ const profileRoutes = require("./routes/profileRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
+app.use(cors({
+    origin: "http://localhost:3001",
+    credentials: true,
+}));
+
 app.use(express.json());
 
 app.use("/users", userRoutes);

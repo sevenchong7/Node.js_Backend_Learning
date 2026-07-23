@@ -92,19 +92,17 @@ const refreshToken = async (refreshToken) => {
 
     const user = await userRepositories.findUserById(userId);
 
-    // const storeRefreshToken = await userRepositories.getRefreshToken(userId);
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    const storeRefreshToken = user.refresh_token;
 
     if (refreshToken !== storeRefreshToken) {
         throw new AppError("Invalid Token", 401);
     }
 
-    // const compareResult = await bcrypt.compare(refreshToken, storeRefreshToken);
-
-    if (!compareResult) {
-        throw new AppError("Invalid Token", 401);
-    }
-
-    const accessToken = jwt.sign({
+    const newAccessToken = jwt.sign({
             userId: user.id,
             type: 'access'
         },
@@ -113,8 +111,20 @@ const refreshToken = async (refreshToken) => {
         }
     );
 
+    const newRefreshToken = jwt.sign({
+            userId: user.id,
+            type: "refresh"
+        },
+        process.env.JWT_REFRESH_SECRET, {
+            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN
+        }
+    );
+
+    await userRepositories.updateRefreshToken(userId, newRefreshToken)
+
     return {
-        accessToken
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken
     };
 }
 
