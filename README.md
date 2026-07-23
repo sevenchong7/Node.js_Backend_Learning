@@ -1,0 +1,12 @@
+This is a Node.js Backend Learning path with
+- Node.js
+- Express.js
+- PostgreSQL
+- Json Web Token(JWT)
+- Middleware
+- Pagination Search Function
+- Jest Test
+- Docker Setup
+- Redis
+- Zod Validation
+- Controller-Service-Repository pattern
